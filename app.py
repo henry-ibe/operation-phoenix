@@ -1,10 +1,7 @@
 """
 Phoenix Air - Main Application
-Connected to PostgreSQL Database
 """
-
 from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
 
@@ -17,33 +14,13 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize database
-db = SQLAlchemy(app)
+# Initialize database with app
+from models import db, Airport, Aircraft, Flight
+db.init_app(app)
 
-# Airport Model (matches our database table)
-class Airport(db.Model):
-    __tablename__ = 'airports'
-    airport_code = db.Column(db.String(3), primary_key=True)
-    name = db.Column(db.String(100))
-    city = db.Column(db.String(50))
-    country = db.Column(db.String(50))
-    timezone = db.Column(db.String(50))
-
-# Aircraft Model
-class Aircraft(db.Model):
-    __tablename__ = 'aircraft'
-    aircraft_id = db.Column(db.Integer, primary_key=True)
-    registration = db.Column(db.String(10))
-    model = db.Column(db.String(50))
-    total_seats = db.Column(db.Integer)
-    economy_seats = db.Column(db.Integer)
-    business_seats = db.Column(db.Integer)
-    first_class_seats = db.Column(db.Integer)
-
-# Homepage route - show real data from database!
+# Homepage route
 @app.route('/')
 def index():
-    # Get airports from database
     airports = Airport.query.all()
     aircraft = Aircraft.query.all()
     
@@ -56,7 +33,6 @@ def index():
 @app.route('/health')
 def health():
     try:
-        # Test database connection
         result = db.session.execute(db.text('SELECT 1'))
         db_status = 'connected'
     except Exception as e:
@@ -67,6 +43,10 @@ def health():
         'app': 'Phoenix Air',
         'database': db_status
     }
+
+# Register booking blueprint
+from routes.booking import booking_bp
+app.register_blueprint(booking_bp)
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))

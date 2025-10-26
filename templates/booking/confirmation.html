@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Confirmed - Phoenix Air</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar {
+            background: #0066cc;
+            color: white;
+            padding: 15px 20px;
+        }
+        .navbar h1 { font-size: 24px; }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .success-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .checkmark {
+            font-size: 80px;
+            color: #28a745;
+        }
+        h1 { color: #28a745; margin: 20px 0; }
+        .booking-ref {
+            font-size: 36px;
+            font-weight: bold;
+            color: #0066cc;
+            letter-spacing: 3px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .details {
+            text-align: left;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .label { font-weight: bold; color: #666; }
+        .value { color: #333; }
+        .btn {
+            background: #0066cc;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>✈️ Phoenix Air</h1>
+    </div>
+
+    <div class="container">
+        <div class="success-box">
+            <div class="checkmark">✓</div>
+            <h1>Booking Confirmed!</h1>
+            <p>Your flight has been successfully booked</p>
+            
+            <div class="booking-ref">{{ booking.booking_reference }}</div>
+            <p style="color: #666;">Save this booking reference for check-in</p>
+            
+            <div class="details">
+                <div class="detail-row">
+                    <span class="label">Passenger:</span>
+                    <span class="value">{{ booking.customer_first_name }} {{ booking.customer_last_name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ booking.customer_email }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Flight:</span>
+                    <span class="value">{{ booking.flight.flight_number }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Route:</span>
+                    <span class="value">{{ booking.flight.origin_airport }} → {{ booking.flight.destination_airport }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Departure:</span>
+                    <span class="value">{{ booking.flight.scheduled_departure.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Passengers:</span>
+                    <span class="value">{{ booking.num_passengers }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Total Paid:</span>
+                    <span class="value" style="color: #28a745; font-weight: bold;">${{ "%.2f"|format(booking.total_price) }}</span>
+                </div>
+            </div>
+            
+            <a href="/booking/search" class="btn">Book Another Flight</a>
+            <a href="/" class="btn">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>
