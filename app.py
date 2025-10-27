@@ -1,7 +1,8 @@
 """
 Phoenix Air - Main Application
 """
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
+from flask_login import LoginManager, current_user
 from dotenv import load_dotenv
 import os
 
@@ -15,8 +16,18 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database with app
-from models import db, Airport, Aircraft, Flight
+from models import db, Airport, Aircraft, Flight, User
 db.init_app(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+login_manager.login_message = 'Please log in to access this page.'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Homepage route
 @app.route('/')
@@ -44,9 +55,12 @@ def health():
         'database': db_status
     }
 
-# Register booking blueprint
+# Register blueprints
 from routes.booking import booking_bp
+from routes.auth import auth_bp
+
 app.register_blueprint(booking_bp)
+app.register_blueprint(auth_bp)
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))

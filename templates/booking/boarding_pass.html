@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Boarding Pass - Phoenix Air</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar {
+            background: #0066cc;
+            color: white;
+            padding: 15px 20px;
+        }
+        .navbar h1 { font-size: 24px; }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .boarding-pass {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .header {
+            background: linear-gradient(135deg, #0066cc 0%, #004c99 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 5px; }
+        .checkmark {
+            font-size: 60px;
+            color: #28a745;
+            margin: 20px 0;
+        }
+        .pass-content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed #e0e0e0;
+        }
+        .section:last-child { border-bottom: none; }
+        .route {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+        .arrow { color: #666; }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        .label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .value {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+        .seat-highlight {
+            background: #0066cc;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .barcode {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .barcode-img {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            letter-spacing: 2px;
+            color: #000;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            flex: 1;
+            background: #0066cc;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>✈️ Phoenix Air</h1>
+    </div>
+
+    <div class="container">
+        <div class="boarding-pass">
+            <div class="header">
+                <div class="checkmark">✓</div>
+                <h1>Checked In!</h1>
+                <p>Your boarding pass is ready</p>
+            </div>
+
+            <div class="pass-content">
+                <div class="section">
+                    <div class="route">
+                        <span>{{ booking.flight.origin_airport }}</span>
+                        <span class="arrow">→</span>
+                        <span>{{ booking.flight.destination_airport }}</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="detail-row">
+                        <div>
+                            <div class="label">Passenger</div>
+                            <div class="value">{{ booking.customer_first_name }} {{ booking.customer_last_name }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="label">Booking Ref</div>
+                            <div class="value">{{ booking.booking_reference }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="detail-row">
+                        <div>
+                            <div class="label">Flight</div>
+                            <div class="value">{{ booking.flight.flight_number }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="label">Gate</div>
+                            <div class="value">{{ booking.flight.gate }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-row" style="margin-top: 10px;">
+                        <div>
+                            <div class="label">Departure</div>
+                            <div class="value">{{ booking.flight.scheduled_departure.strftime('%I:%M %p') }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="label">Date</div>
+                            <div class="value">{{ booking.flight.scheduled_departure.strftime('%b %d, %Y') }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="seat-highlight">
+                    SEAT {{ booking.seat_number }}
+                </div>
+
+                <div class="barcode">
+                    <div class="label">Scan at Gate</div>
+                    <div class="barcode-img">||||| {{ booking.booking_reference }} |||||</div>
+                </div>
+
+                <div class="actions">
+                    <a href="/auth/dashboard" class="btn">Dashboard</a>
+                    <a href="/booking/search" class="btn">Book Another</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

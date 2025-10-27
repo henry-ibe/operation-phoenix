@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check-in - Phoenix Air</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar {
+            background: #0066cc;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar h1 { font-size: 24px; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h2 { color: #0066cc; margin-bottom: 20px; }
+        .flight-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .route {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0066cc;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .seat-selection {
+            margin: 30px 0;
+        }
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .seat {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            background: white;
+        }
+        .seat:hover {
+            border-color: #0066cc;
+            background: #f0f8ff;
+        }
+        .seat.selected {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+        .btn {
+            background: #0066cc;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover { background: #0052a3; }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>✈️ Phoenix Air - Check-in</h1>
+        <div>
+            <a href="/auth/dashboard">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>✈️ Online Check-in</h2>
+            
+            <div class="flight-info">
+                <div class="route">{{ booking.flight.origin_airport }} → {{ booking.flight.destination_airport }}</div>
+                <p><strong>Booking Reference:</strong> {{ booking.booking_reference }}</p>
+                <p><strong>Flight:</strong> {{ booking.flight.flight_number }}</p>
+                <p><strong>Passenger:</strong> {{ booking.customer_first_name }} {{ booking.customer_last_name }}</p>
+                <p><strong>Departure:</strong> {{ booking.flight.scheduled_departure.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                <p><strong>Gate:</strong> {{ booking.flight.gate }}</p>
+            </div>
+
+            <div class="seat-selection">
+                <h3 style="text-align: center; margin-bottom: 20px;">Select Your Seat</h3>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">Economy Class</p>
+                
+                <form method="POST" action="/booking/checkin/confirm/{{ booking.booking_reference }}" id="checkinForm">
+                    <input type="hidden" name="seat_number" id="seatInput" required>
+                    
+                    <div class="seat-grid">
+                        {% for row in range(1, 11) %}
+                            {% for seat in ['A', 'B', 'C', 'D', 'E', 'F'] %}
+                                <div class="seat" onclick="selectSeat('{{ row }}{{ seat }}')">
+                                    {{ row }}{{ seat }}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="submit" class="btn" id="confirmBtn" disabled>Confirm Check-in</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedSeat = null;
+        
+        function selectSeat(seatNumber) {
+            // Remove previous selection
+            const seats = document.querySelectorAll('.seat');
+            seats.forEach(seat => seat.classList.remove('selected'));
+            
+            // Add new selection
+            event.target.classList.add('selected');
+            selectedSeat = seatNumber;
+            
+            // Update hidden input and enable button
+            document.getElementById('seatInput').value = seatNumber;
+            document.getElementById('confirmBtn').disabled = false;
+        }
+    </script>
+</body>
+</html>

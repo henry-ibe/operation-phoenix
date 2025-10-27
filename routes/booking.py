@@ -2,6 +2,7 @@
 Booking Routes - Flight Search and Booking
 """
 from flask import Blueprint, render_template, request
+from flask_login import current_user
 from datetime import datetime
 from sqlalchemy import func
 from models import db, Airport, Flight, Booking
@@ -14,10 +15,7 @@ booking_bp = Blueprint('booking', __name__, url_prefix='/booking')
 @booking_bp.route('/search', methods=['GET', 'POST'])
 def search():
     """Flight search page"""
-    # Get all airports for dropdown
     airports = Airport.query.all()
-    
-    # Search results
     flights = []
     search_performed = False
     
@@ -29,10 +27,7 @@ def search():
         search_performed = True
         
         if origin and destination and date_str:
-            # Parse date
             search_date = datetime.strptime(date_str, '%Y-%m-%d')
-            
-            # Search flights
             flights = Flight.query.filter(
                 Flight.origin_airport == origin,
                 Flight.destination_airport == destination,
@@ -55,20 +50,15 @@ def confirm_booking(flight_id):
     """Confirm booking and create record"""
     flight = Flight.query.get_or_404(flight_id)
     
-    # Get passenger info from form
     first_name = request.form.get('first_name')
     last_name = request.form.get('last_name')
     email = request.form.get('email')
     phone = request.form.get('phone')
     num_passengers = int(request.form.get('num_passengers', 1))
     
-    # Generate booking reference
     booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    
-    # Calculate total price
     total_price = float(flight.price_economy) * num_passengers
     
-    # Create booking
     booking = Booking(
         booking_reference=booking_ref,
         customer_email=email,
@@ -76,6 +66,7 @@ def confirm_booking(flight_id):
         customer_last_name=last_name,
         customer_phone=phone,
         flight_id=flight_id,
+        user_id=current_user.user_id if current_user.is_authenticated else None,
         num_passengers=num_passengers,
         total_price=total_price,
         booking_date=datetime.now(),
@@ -83,10 +74,7 @@ def confirm_booking(flight_id):
     )
     
     db.session.add(booking)
-    
-    # Update seat availability
     flight.available_economy -= num_passengers
-    
     db.session.commit()
     
     return render_template('booking/confirmation.html', booking=booking)
@@ -102,7 +90,6 @@ def view_booking():
         last_name = request.form.get('last_name', '').strip()
         
         if booking_ref and last_name:
-            # Search for booking
             booking = Booking.query.filter_by(
                 booking_reference=booking_ref,
                 customer_last_name=last_name
@@ -114,3 +101,38 @@ def view_booking():
             error = "Please enter both booking reference and last name."
     
     return render_template('booking/view.html', booking=booking, error=error)
+
+@booking_bp.route('/checkin/<booking_ref>')
+def checkin(booking_ref):
+    """Check-in for a flight"""
+    booking = Booking.query.filter_by(booking_reference=booking_ref).first_or_404()
+    
+    # Check if already checked in
+    if booking.checked_in:
+        return render_template('booking/boarding_pass.html', booking=booking)
+    
+    # TESTING MODE: Skip 24-hour check for now
+    # from datetime import timedelta
+    # now = datetime.now()
+    # checkin_opens = booking.flight.scheduled_departure - timedelta(hours=24)
+    # if now < checkin_opens:
+    #     hours_remaining = int((checkin_opens - now).total_seconds() / 3600)
+    #     error = f"Check-in opens {hours_remaining} hours before departure"
+    #     return render_template('booking/checkin_error.html', error=error, booking=booking)
+    
+    # Show seat selection
+    return render_template('booking/checkin.html', booking=booking)
+
+@booking_bp.route('/checkin/confirm/<booking_ref>', methods=['POST'])
+def confirm_checkin(booking_ref):
+    """Confirm check-in and assign seat"""
+    booking = Booking.query.filter_by(booking_reference=booking_ref).first_or_404()
+    
+    seat_number = request.form.get('seat_number')
+    
+    booking.checked_in = True
+    booking.seat_number = seat_number
+    
+    db.session.commit()
+    
+    return render_template('booking/boarding_pass.html', booking=booking)
