@@ -90,3 +90,27 @@ def confirm_booking(flight_id):
     db.session.commit()
     
     return render_template('booking/confirmation.html', booking=booking)
+
+@booking_bp.route('/view', methods=['GET', 'POST'])
+def view_booking():
+    """View/search for a booking"""
+    booking = None
+    error = None
+    
+    if request.method == 'POST':
+        booking_ref = request.form.get('booking_reference', '').strip().upper()
+        last_name = request.form.get('last_name', '').strip()
+        
+        if booking_ref and last_name:
+            # Search for booking
+            booking = Booking.query.filter_by(
+                booking_reference=booking_ref,
+                customer_last_name=last_name
+            ).first()
+            
+            if not booking:
+                error = "Booking not found. Please check your reference and last name."
+        else:
+            error = "Please enter both booking reference and last name."
+    
+    return render_template('booking/view.html', booking=booking, error=error)
