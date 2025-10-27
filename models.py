@@ -4,6 +4,7 @@ Database Models
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -90,3 +91,17 @@ class Booking(db.Model):
     
     # Relationship
     flight = db.relationship('Flight')
+
+class Baggage(db.Model):
+    __tablename__ = 'baggage'
+    baggage_id = db.Column(db.Integer, primary_key=True)
+    baggage_tag = db.Column(db.String(10), unique=True, nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey('bookings.booking_id'))
+    weight = db.Column(db.Numeric(5, 2))
+    status = db.Column(db.String(20), default='checked_in')
+    current_location = db.Column(db.String(100))
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    description = db.Column(db.String(200))
+    
+    # Relationship
+    booking = db.relationship('Booking', backref='baggage_items')

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Baggage Status - Phoenix Air</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar {
+            background: #dc3545;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        .navbar h1 { font-size: 24px; }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #ffc107;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 { color: #dc3545; margin-bottom: 20px; }
+        .current-status {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #dc3545;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover { background: #c82333; }
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover { background: #5a6268; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🔧 ADMIN: Update Baggage Status</h1>
+    </div>
+
+    <div class="warning">
+        ⚠️ <strong>DEMO MODE:</strong> This is for demonstration purposes only. In production, this would be restricted to authorized personnel.
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Update Baggage: {{ baggage.baggage_tag }}</h2>
+            
+            <div class="current-status">
+                <strong>Current Status:</strong> {{ baggage.status.replace('_', ' ').title() }}<br>
+                <strong>Current Location:</strong> {{ baggage.current_location }}<br>
+                <strong>Flight:</strong> {{ baggage.booking.flight.flight_number }} ({{ baggage.booking.flight.origin_airport }} → {{ baggage.booking.flight.destination_airport }})
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>New Status *</label>
+                    <select name="status" required>
+                        <option value="checked_in" {% if baggage.status == 'checked_in' %}selected{% endif %}>Checked In</option>
+                        <option value="in_transit" {% if baggage.status == 'in_transit' %}selected{% endif %}>In Transit to Aircraft</option>
+                        <option value="loaded" {% if baggage.status == 'loaded' %}selected{% endif %}>Loaded on Aircraft</option>
+                        <option value="arrived" {% if baggage.status == 'arrived' %}selected{% endif %}>Arrived at Destination</option>
+                        <option value="delivered" {% if baggage.status == 'delivered' %}selected{% endif %}>Ready for Collection</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>New Location *</label>
+                    <input type="text" name="location" value="{{ baggage.current_location }}" required>
+                </div>
+
+                <button type="submit" class="btn">Update Status</button>
+                <a href="/booking/baggage/track" class="btn btn-secondary" style="text-decoration: none; display: block; text-align: center;">Cancel</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

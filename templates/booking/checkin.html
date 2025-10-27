@@ -28,6 +28,7 @@
             margin-bottom: 20px;
         }
         h2 { color: #0066cc; margin-bottom: 20px; }
+        h3 { color: #0066cc; margin-bottom: 15px; }
         .flight-info {
             background: #f8f9fa;
             padding: 20px;
@@ -68,6 +69,36 @@
             color: white;
             border-color: #0066cc;
         }
+        .baggage-section {
+            margin: 30px 0;
+        }
+        .baggage-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
         .btn {
             background: #0066cc;
             color: white;
@@ -84,6 +115,20 @@
             background: #ccc;
             cursor: not-allowed;
         }
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+            width: auto;
+        }
+        .btn-add {
+            background: #28a745;
+            margin-top: 10px;
+        }
+        .btn-add:hover { background: #218838; }
+        .btn-remove {
+            background: #dc3545;
+        }
+        .btn-remove:hover { background: #c82333; }
     </style>
 </head>
 <body>
@@ -107,11 +152,12 @@
                 <p><strong>Gate:</strong> {{ booking.flight.gate }}</p>
             </div>
 
-            <div class="seat-selection">
-                <h3 style="text-align: center; margin-bottom: 20px;">Select Your Seat</h3>
-                <p style="text-align: center; color: #666; margin-bottom: 20px;">Economy Class</p>
-                
-                <form method="POST" action="/booking/checkin/confirm/{{ booking.booking_reference }}" id="checkinForm">
+            <form method="POST" action="/booking/checkin/confirm/{{ booking.booking_reference }}" id="checkinForm">
+                <!-- Seat Selection -->
+                <div class="seat-selection">
+                    <h3 style="text-align: center; margin-bottom: 20px;">Select Your Seat</h3>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px;">Economy Class</p>
+                    
                     <input type="hidden" name="seat_number" id="seatInput" required>
                     
                     <div class="seat-grid">
@@ -123,15 +169,28 @@
                             {% endfor %}
                         {% endfor %}
                     </div>
+                </div>
+
+                <!-- Baggage Section -->
+                <div class="baggage-section">
+                    <h3>🧳 Add Baggage (Optional)</h3>
+                    <p style="color: #666; margin-bottom: 20px;">Add checked baggage to your booking</p>
                     
-                    <button type="submit" class="btn" id="confirmBtn" disabled>Confirm Check-in</button>
-                </form>
-            </div>
+                    <div id="baggageList">
+                        <!-- Baggage items will be added here -->
+                    </div>
+                    
+                    <button type="button" class="btn btn-add btn-small" onclick="addBaggage()">+ Add Bag</button>
+                </div>
+                
+                <button type="submit" class="btn" id="confirmBtn" disabled>Confirm Check-in</button>
+            </form>
         </div>
     </div>
 
     <script>
         let selectedSeat = null;
+        let baggageCount = 0;
         
         function selectSeat(seatNumber) {
             // Remove previous selection
@@ -145,6 +204,35 @@
             // Update hidden input and enable button
             document.getElementById('seatInput').value = seatNumber;
             document.getElementById('confirmBtn').disabled = false;
+        }
+        
+        function addBaggage() {
+            baggageCount++;
+            const baggageList = document.getElementById('baggageList');
+            
+            const baggageItem = document.createElement('div');
+            baggageItem.className = 'baggage-item';
+            baggageItem.id = 'baggage-' + baggageCount;
+            baggageItem.innerHTML = `
+                <div class="form-group" style="margin: 0;">
+                    <label>Weight (kg)</label>
+                    <input type="number" name="baggage_weight[]" step="0.1" min="0" max="32" placeholder="e.g., 23.5">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label>Description</label>
+                    <input type="text" name="baggage_description[]" placeholder="e.g., Large suitcase">
+                </div>
+                <button type="button" class="btn btn-remove btn-small" onclick="removeBaggage(${baggageCount})">Remove</button>
+            `;
+            
+            baggageList.appendChild(baggageItem);
+        }
+        
+        function removeBaggage(id) {
+            const item = document.getElementById('baggage-' + id);
+            if (item) {
+                item.remove();
+            }
         }
     </script>
 </body>

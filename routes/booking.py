@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request
 from flask_login import current_user
 from datetime import datetime
 from sqlalchemy import func
-from models import db, Airport, Flight, Booking
+from models import db, Airport, Flight, Booking, Baggage
 import random
 import string
 
@@ -111,16 +111,7 @@ def checkin(booking_ref):
     if booking.checked_in:
         return render_template('booking/boarding_pass.html', booking=booking)
     
-    # TESTING MODE: Skip 24-hour check for now
-    # from datetime import timedelta
-    # now = datetime.now()
-    # checkin_opens = booking.flight.scheduled_departure - timedelta(hours=24)
-    # if now < checkin_opens:
-    #     hours_remaining = int((checkin_opens - now).total_seconds() / 3600)
-    #     error = f"Check-in opens {hours_remaining} hours before departure"
-    #     return render_template('booking/checkin_error.html', error=error, booking=booking)
-    
-    # Show seat selection
+    # Show seat selection and baggage
     return render_template('booking/checkin.html', booking=booking)
 
 @booking_bp.route('/checkin/confirm/<booking_ref>', methods=['POST'])
@@ -130,9 +121,74 @@ def confirm_checkin(booking_ref):
     
     seat_number = request.form.get('seat_number')
     
+    # Update booking
     booking.checked_in = True
     booking.seat_number = seat_number
+    
+    # Process baggage
+    baggage_weights = request.form.getlist('baggage_weight[]')
+    baggage_descriptions = request.form.getlist('baggage_description[]')
+    
+    for i, weight in enumerate(baggage_weights):
+        if weight:  # Only add if weight is provided
+            # Generate baggage tag
+            baggage_tag = f"BA{random.randint(100000, 999999)}"
+            
+            description = baggage_descriptions[i] if i < len(baggage_descriptions) else "Checked bag"
+            
+            baggage = Baggage(
+                baggage_tag=baggage_tag,
+                booking_id=booking.booking_id,
+                weight=float(weight),
+                status='checked_in',
+                current_location=f"{booking.flight.origin_airport} - Check-in Counter",
+                last_updated=datetime.now(),
+                description=description
+            )
+            
+            db.session.add(baggage)
     
     db.session.commit()
     
     return render_template('booking/boarding_pass.html', booking=booking)
+
+@booking_bp.route('/baggage/track', methods=['GET', 'POST'])
+def track_baggage():
+    """Track baggage by tag number"""
+    baggage = None
+    error = None
+    
+    if request.method == 'POST':
+        tag = request.form.get('baggage_tag', '').strip().upper()
+        
+        if tag:
+            baggage = Baggage.query.filter_by(baggage_tag=tag).first()
+            
+            if not baggage:
+                error = "Baggage not found. Please check your tag number."
+        else:
+            error = "Please enter a baggage tag number."
+    
+    return render_template('booking/track_baggage.html', baggage=baggage, error=error)
+
+@booking_bp.route('/baggage/admin/<baggage_tag>', methods=['GET', 'POST'])
+def admin_baggage(baggage_tag):
+    """Admin page to update baggage status (DEMO)"""
+    from flask import flash, redirect
+    
+    baggage = Baggage.query.filter_by(baggage_tag=baggage_tag).first_or_404()
+    
+    if request.method == 'POST':
+        new_status = request.form.get('status')
+        new_location = request.form.get('location')
+        
+        baggage.status = new_status
+        baggage.current_location = new_location
+        baggage.last_updated = datetime.now()
+        
+        db.session.commit()
+        
+        flash(f'Baggage {baggage_tag} status updated to {new_status}!', 'success')
+        return redirect(f'/booking/baggage/track')
+    
+    return render_template('booking/admin_baggage.html', baggage=baggage)

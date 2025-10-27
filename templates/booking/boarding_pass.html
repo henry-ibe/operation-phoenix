@@ -21,6 +21,7 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
         }
         .header {
             background: linear-gradient(135deg, #0066cc 0%, #004c99 100%);
@@ -77,6 +78,28 @@
             font-size: 24px;
             font-weight: bold;
             margin: 20px 0;
+        }
+        .baggage-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .baggage-section h3 {
+            color: #0066cc;
+            margin-bottom: 15px;
+        }
+        .baggage-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+        }
+        .baggage-tag {
+            font-weight: bold;
+            color: #0066cc;
+            font-size: 18px;
         }
         .barcode {
             text-align: center;
@@ -170,6 +193,19 @@
                 <div class="seat-highlight">
                     SEAT {{ booking.seat_number }}
                 </div>
+
+                {% if booking.baggage_items %}
+                <div class="baggage-section">
+                    <h3>🧳 Checked Baggage</h3>
+                    {% for bag in booking.baggage_items %}
+                    <div class="baggage-item">
+                        <div class="baggage-tag">{{ bag.baggage_tag }}</div>
+                        <div>{{ bag.description }} - {{ bag.weight }} kg</div>
+                        <div style="color: #28a745; font-size: 12px; margin-top: 5px;">✓ {{ bag.status.replace('_', ' ').title() }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 <div class="barcode">
                     <div class="label">Scan at Gate</div>
