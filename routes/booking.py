@@ -192,3 +192,34 @@ def admin_baggage(baggage_tag):
         return redirect(f'/booking/baggage/track')
     
     return render_template('booking/admin_baggage.html', baggage=baggage)
+
+@booking_bp.route('/health-check')
+def health_check():
+    """Detailed system health check"""
+    from flask import jsonify
+    
+    health_status = {
+        'status': 'healthy',
+        'checks': {}
+    }
+    
+    # Check database
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        db.session.execute(db.text('SELECT COUNT(*) FROM flights'))
+        health_status['checks']['database'] = 'healthy'
+    except Exception as e:
+        health_status['checks']['database'] = f'unhealthy: {str(e)}'
+        health_status['status'] = 'unhealthy'
+    
+    # Check tables exist
+    try:
+        Airport.query.first()
+        Flight.query.first()
+        Booking.query.first()
+        health_status['checks']['tables'] = 'healthy'
+    except Exception as e:
+        health_status['checks']['tables'] = f'unhealthy: {str(e)}'
+        health_status['status'] = 'unhealthy'
+    
+    return jsonify(health_status)

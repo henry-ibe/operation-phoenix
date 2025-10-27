@@ -41,6 +41,11 @@ def index():
                          airports=airports,
                          aircraft=aircraft)
 
+# System status page
+@app.route('/status')
+def status():
+    return render_template('status.html')
+
 # Health check
 @app.route('/health')
 def health():
